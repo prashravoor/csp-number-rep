@@ -1,24 +1,99 @@
 #include <iostream>
-#include "int-matrix.h"
 #include <cmath>
-#include "timer.h"
+#include "logger.h"
+#include "matrix-operations.h"
+
+void matrixOperations();
+
+void numRepOperations();
+
+void floatingPointOperations();
 
 int main()
 {
-    std::cout << "Hello, World!" << std::endl;
+    Logger::init();
 
-    Timer timer;
-    MatrixBase<int> *matrix = new IntMatrix(2, 2, COLUMN_MAJOR);
+    std::cout << "******** Starting Up **************" << std::endl;
 
-    for (int i = 0; i < 2; ++i)
-        for (int j = 0; j < 2; ++j) {
-            int t;
-            scanf("%d", &t);
-            matrix->set(i, j, t);
+    while (true)
+    {
+        std::cout << "Select Operation Category:" << std::endl;
+        std::cout << "1 Matrix Operations\t2 Number Representation Operations\t"
+                     "3 Floating Point Operations\t4 Exit"
+                  << std::endl;
+
+        int type = -1;
+        std::cin >> type;
+        if (std::cin.bad())
+        {
+            std::cout << "Invalid category, try again" << std::endl;
+            continue;
         }
 
-    matrix->display();
+        switch (type)
+        {
+        case 1:
+            matrixOperations();
+            break;
+        case 2:
+            numRepOperations();
+            break;
+        case 3:
+            floatingPointOperations();
+            break;
+        case 4:
+            std::cout << "Exiting" << std::endl;
+            return 0;
+        default:
+            ELOG << "Invalid category, try again";
+        }
+    }
+}
 
-    std::cout << "Elapsed time: " << timer.getElapsedMilliseconds() << std::endl;
-    return 0;
+void matrixOperations()
+{
+    DLOG << "Beginning Matrix Operations";
+    MatrixOperations matrixOperations;
+
+    while (true)
+    {
+        std::cout << "Select the type of operation:" << std::endl;
+        std::cout << "1 CreateMatrix\t2 ReadMatrix\t3 ShowMatrix\t4FreeMatrix\t5 Previous Menu" << std::endl;
+
+        int choice = -1;
+        std::cin >> choice;
+
+        if (std::cin.bad())
+        {
+            ELOG << "Invalid choice, try again";
+            continue;
+        }
+
+        switch (choice)
+        {
+        case 1:
+            matrixOperations.CreateMatrix();
+            break;
+        case 2:
+            break;
+        case 3:
+            break;
+        case 4:
+            break;
+        case 5:
+            std::cout << "Returning from Matrix Operations" << std::endl;
+            return;
+        default:
+            ELOG << "Invalid choice, try again";
+            break;
+        }
+    }
+}
+
+void numRepOperations()
+{
+}
+
+void floatingPointOperations()
+{
 }

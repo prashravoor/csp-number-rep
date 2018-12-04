@@ -5,7 +5,7 @@ OBJDIR=obj
 BINDIR=bin
 INC_DIR=include
 
-MATRICES = int-matrix matrices timer
+MATRICES = logger matrices timer matrix-operations
 MATRICES_TSRC = $(addsuffix .cpp, $(MATRICES))
 MATRICES_SRC = $(addprefix $(SRC)/, $(MATRICES_TSRC))
 

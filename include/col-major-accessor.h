@@ -3,6 +3,7 @@
 
 #include "matrix-accessor.h"
 #include "matrix-base.h"
+#include "logger.h"
 
 template <typename T>
 class ColMajorAccessor : public IMatrixAccessor<T>
@@ -36,6 +37,7 @@ ColMajorAccessor<T>::ColMajorAccessor(unsigned rows, unsigned cols) : rows(rows)
                                                                       rowIndex(0),
                                                                       colIndex(0)
 {
+  ILOG << "Created Column Major Matrix of size [" << rows << ", " << cols << "]";
   data = new T *[rows]();
   for (unsigned int i = 0; i < rows; ++i)
   {
@@ -46,6 +48,7 @@ ColMajorAccessor<T>::ColMajorAccessor(unsigned rows, unsigned cols) : rows(rows)
 template <typename T>
 ColMajorAccessor<T>::~ColMajorAccessor()
 {
+  DLOG << "Deleting Column Major matrix";
   for (unsigned int i = 0; i < rows; ++i)
   {
     delete[] data[i];
@@ -57,21 +60,30 @@ ColMajorAccessor<T>::~ColMajorAccessor()
 template <typename T>
 T ColMajorAccessor<T>::get(unsigned row, unsigned col) const
 {
+  DLOG << "Getting element [" << row << ", " << col << "] in column major order";
   if (row < cols && col < rows)
   {
-    return data[row][col];
+    return data[col][row];
   }
 
+  ELOG << "Failed to find element at position [" << row << ", " << col
+       << "] in Column Major matrix of size [" << rows << ", " << cols << "]";
   return UINT32_MAX;
 }
 
 template <typename T>
 void ColMajorAccessor<T>::set(unsigned row, unsigned col, T val)
 {
-  if (row < cols && col < rows)
+  DLOG << "Attempting to set element [" << row << ", " << col
+       << "] in Column Major matrix to value [" << val << "]";
+  if (row < rows && col < cols)
   {
-    std::cout << "Setting row " << col << ", col " << row << std::endl;
-    data[col][row] = val;
+    data[row][col] = val;
+  }
+  else
+  {
+    ELOG << "Failed to find element at position [" << row << ", " << col
+         << "] in matrix of size [" << rows << ", " << cols << "]";
   }
 }
 

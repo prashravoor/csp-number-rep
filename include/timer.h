@@ -10,6 +10,8 @@ class Timer
 
     long getElapsedMilliseconds() const;
 
+    void reset();
+
     private:
     std::chrono::time_point<std::chrono::system_clock> startTime; 
 };
