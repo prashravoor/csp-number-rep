@@ -2,7 +2,7 @@
 #define MATRIX_BASE_H
 
 #include "access-type.h"
-#include "matrix-accessor.h"
+#include "logger.h"
 
 template <typename T>
 class MatrixBase
@@ -21,11 +21,14 @@ public:
 
   virtual void set(unsigned row, unsigned col, T val);
 
-  virtual void display(unsigned startRow = 0, unsigned startCol = 0) const;
+  virtual void display(unsigned startRow, unsigned startCol, AccessType access) const;
+
+  virtual AccessType getAccessType() const;
 
 protected:
   unsigned rows, columns;
-  IMatrixAccessor<T> *accessor;
+  T **data;
+  AccessType accessType;
 };
 
 #include "row-major-accessor.h"
@@ -34,22 +37,19 @@ protected:
 
 template <typename T>
 MatrixBase<T>::MatrixBase(unsigned rows, unsigned cols, AccessType accessType)
-    : rows(rows), columns(cols)
+    : rows(rows), columns(cols), accessType(accessType)
 {
-  if (COLUMN_MAJOR == accessType)
+  ILOG << "Created Matrix of size [" << rows << ", " << cols << "]";
+  data = new T *[rows]();
+  for (unsigned int i = 0; i < rows; ++i)
   {
-    accessor = new ColMajorAccessor<T>(rows, cols);
-  }
-  else
-  {
-    accessor = new RowMajorAccessor<T>(rows, cols);
+    data[i] = new T[cols]();
   }
 }
 
 template <typename T>
 MatrixBase<T>::~MatrixBase()
 {
-  delete accessor;
 }
 
 template <typename T>
@@ -67,25 +67,71 @@ unsigned MatrixBase<T>::getCols() const
 template <typename T>
 T MatrixBase<T>::get(unsigned row, unsigned col) const
 {
-  return accessor->get(row, col);
+  if (row < rows && col < columns)
+  {
+    return data[row][col];
+  }
+
+  ELOG << "Invalid index specified: [" << row << ", "
+       << col << "] for matrix of size [" << rows << ", " << columns << "]";
+  return UINT32_MAX;
 }
 
 template <typename T>
 void MatrixBase<T>::set(unsigned row, unsigned col, T val)
 {
-  accessor->set(row, col, val);
+  if (row < rows && col < columns)
+  {
+    data[row][col] = val;
+  }
+  else
+  {
+    ELOG << "Invalid index specified: [" << row << ", "
+         << col << "] for matrix of size [" << rows << ", " << columns << "]";
+  }
 }
 
 template <typename T>
-void MatrixBase<T>::display(unsigned startRow, unsigned startCol) const
+void MatrixBase<T>::display(unsigned startRow, unsigned startCol, AccessType access) const
 {
-  for (unsigned int i = startRow; i < rows; ++i)
+  ILOG << "Display matrix of size [" << rows << ", "
+       << columns << "] from row [" << startRow << ", "
+       << startCol << "] in [" << access << "] order";
+
+  if (startRow >= rows || startCol >= columns)
   {
-    for (unsigned int j = startCol; j < columns; ++j)
+    ELOG << "Invalid indices specified!";
+    return;
+  }
+
+  if (ROW_MAJOR == access)
+  {
+    for (unsigned i = startRow; i < rows; ++i)
     {
-      std::cout << accessor->get(i, j) << " ";
+      for (unsigned j = startCol; j < columns; ++j)
+      {
+        std::cout << get(i, j) << " ";
+      }
+      std::cout << std::endl;
     }
-    std::cout << std::endl;
+  }
+  else
+  {
+    for (unsigned j = startCol; j < columns; ++j)
+    {
+      for (unsigned i = startRow; i < rows; ++i)
+      {
+        std::cout << get(i, j) << " ";
+      }
+      std::cout << std::endl;
+    }
   }
 }
+
+template <typename T>
+AccessType MatrixBase<T>::getAccessType() const
+{
+  return accessType;
+}
+
 #endif

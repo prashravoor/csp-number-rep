@@ -2,6 +2,7 @@
 #include <cmath>
 #include "logger.h"
 #include "matrix-operations.h"
+#include <limits>
 
 void matrixOperations();
 
@@ -9,11 +10,13 @@ void numRepOperations();
 
 void floatingPointOperations();
 
+void bannerify(const char *text);
+
 int main()
 {
     Logger::init();
 
-    std::cout << "******** Starting Up **************" << std::endl;
+    bannerify("Starting Up... CSP Assignment #1");
 
     while (true)
     {
@@ -24,9 +27,11 @@ int main()
 
         int type = -1;
         std::cin >> type;
-        if (std::cin.bad())
+        if (std::cin.fail())
         {
             std::cout << "Invalid category, try again" << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             continue;
         }
 
@@ -50,22 +55,31 @@ int main()
     }
 }
 
+void bannerify(const char *text)
+{
+    std::cout << std::endl
+              << "******************** " << text << " ***********************" << std::endl;
+}
+
 void matrixOperations()
 {
     DLOG << "Beginning Matrix Operations";
+    bannerify("Matrix Operations");
     MatrixOperations matrixOperations;
 
     while (true)
     {
         std::cout << "Select the type of operation:" << std::endl;
-        std::cout << "1 CreateMatrix\t2 ReadMatrix\t3 ShowMatrix\t4FreeMatrix\t5 Previous Menu" << std::endl;
+        std::cout << "1 CreateMatrix\t2 ReadMatrix\t3 ShowMatrix\t4 FreeMatrix\t5 Previous Menu" << std::endl;
 
         int choice = -1;
         std::cin >> choice;
 
-        if (std::cin.bad())
+        if (std::cin.fail())
         {
             ELOG << "Invalid choice, try again";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             continue;
         }
 
@@ -75,10 +89,13 @@ void matrixOperations()
             matrixOperations.CreateMatrix();
             break;
         case 2:
+            matrixOperations.ReadMatrix();
             break;
         case 3:
+            matrixOperations.ShowMatrix();
             break;
         case 4:
+            matrixOperations.FreeMatrix();
             break;
         case 5:
             std::cout << "Returning from Matrix Operations" << std::endl;

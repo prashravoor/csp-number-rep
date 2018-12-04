@@ -13,6 +13,8 @@ public:
 
   ~RowMajorAccessor();
 
+  AccessType getAccessType() const;
+
   T get(unsigned row, unsigned col) const;
 
   void set(unsigned row, unsigned col, T val);
@@ -54,6 +56,12 @@ RowMajorAccessor<T>::~RowMajorAccessor()
   }
 
   delete[] data;
+}
+
+template <typename T>
+AccessType RowMajorAccessor<T>::getAccessType() const
+{
+  return ROW_MAJOR;
 }
 
 template <typename T>
@@ -107,10 +115,11 @@ T RowMajorAccessor<T>::next()
     return UINT32_MAX;
   }
 
-  T tmp = data[rowIndex][colIndex];
+  T tmp = get(rowIndex, colIndex);
   if (colIndex == cols - 1)
   {
     rowIndex++;
+    std::cout << std::endl;
   }
 
   colIndex = (colIndex + 1) % cols;

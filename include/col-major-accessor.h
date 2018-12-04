@@ -13,6 +13,8 @@ public:
 
   ~ColMajorAccessor();
 
+  AccessType getAccessType() const;
+
   T get(unsigned col, unsigned row) const;
 
   void set(unsigned row, unsigned col, T val);
@@ -38,10 +40,10 @@ ColMajorAccessor<T>::ColMajorAccessor(unsigned rows, unsigned cols) : rows(rows)
                                                                       colIndex(0)
 {
   ILOG << "Created Column Major Matrix of size [" << rows << ", " << cols << "]";
-  data = new T *[rows]();
-  for (unsigned int i = 0; i < rows; ++i)
+  data = new T *[cols]();
+  for (unsigned int i = 0; i < cols; ++i)
   {
-    data[i] = new T[cols]();
+    data[i] = new T[rows]();
   }
 }
 
@@ -49,12 +51,18 @@ template <typename T>
 ColMajorAccessor<T>::~ColMajorAccessor()
 {
   DLOG << "Deleting Column Major matrix";
-  for (unsigned int i = 0; i < rows; ++i)
+  for (unsigned int i = 0; i < cols; ++i)
   {
     delete[] data[i];
   }
 
   delete[] data;
+}
+
+template <typename T>
+AccessType ColMajorAccessor<T>::getAccessType() const
+{
+  return COLUMN_MAJOR;
 }
 
 template <typename T>
@@ -76,9 +84,9 @@ void ColMajorAccessor<T>::set(unsigned row, unsigned col, T val)
 {
   DLOG << "Attempting to set element [" << row << ", " << col
        << "] in Column Major matrix to value [" << val << "]";
-  if (row < rows && col < cols)
+  if (row < cols && col < rows)
   {
-    data[row][col] = val;
+    data[col][row] = val;
   }
   else
   {
@@ -103,18 +111,22 @@ bool ColMajorAccessor<T>::hasNext() const
 template <typename T>
 T ColMajorAccessor<T>::next()
 {
+  DLOG << "Current Row = " << rowIndex << ", Col = " << colIndex;
   if (rowIndex >= rows || colIndex >= cols)
   {
     return UINT32_MAX;
   }
 
-  T tmp = data[colIndex][rowIndex];
-  if (rowIndex == rows - 1)
+  T tmp = get(colIndex, rowIndex);
+  DLOG << "Data[" << colIndex << ", " << rowIndex << "] = " << tmp;
+  if (colIndex == cols - 1)
   {
-    colIndex++;
+    rowIndex++;
+    std::cout << std::endl;
   }
 
-  rowIndex = (rowIndex + 1) % rows;
+  colIndex = (colIndex + 1) % cols;
+  DLOG << "Current Row = " << rowIndex << ", Col = " << colIndex;
   return tmp;
 }
 

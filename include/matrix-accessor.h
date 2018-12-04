@@ -9,6 +9,8 @@ public:
 
   virtual void set(unsigned row, unsigned col, T val) = 0;
 
+  virtual AccessType getAccessType() const = 0;
+
   virtual void seek(unsigned row, unsigned col) = 0;
 
   virtual bool hasNext() const = 0;
