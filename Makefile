@@ -1,11 +1,11 @@
 CC=gcc
-CXXFLAGS=-g --std=c++11 -Wall -I/home/prash/PES/csp/csp-number-rep/include
+CXXFLAGS=-g --std=c++11 -Wall -I./include
 SRC=src
 OBJDIR=obj
 BINDIR=bin
 INC_DIR=include
 
-MATRICES = int-matrix matrices
+MATRICES = int-matrix matrices timer
 MATRICES_TSRC = $(addsuffix .cpp, $(MATRICES))
 MATRICES_SRC = $(addprefix $(SRC)/, $(MATRICES_TSRC))
 
