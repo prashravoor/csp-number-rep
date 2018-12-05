@@ -10,6 +10,8 @@ class Timer
 
     long getElapsedMilliseconds() const;
 
+    long getElapsedMicroseconds() const;
+
     void reset();
 
     private:

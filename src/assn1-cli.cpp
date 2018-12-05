@@ -3,6 +3,7 @@
 #include "logger.h"
 #include "matrix-operations.h"
 #include <limits>
+#include "number-rep-ops.h"
 
 void matrixOperations();
 
@@ -109,6 +110,39 @@ void matrixOperations()
 
 void numRepOperations()
 {
+    bannerify("Number Representation Operations");
+    NumberRepOps numberRepOps;
+    while (true)
+    {
+        std::cout << "Select the type of operation:" << std::endl;
+        std::cout << "1 BinToInt\t2 IntToBin\t3 Previous Menu" << std::endl;
+
+        int choice = -1;
+        std::cin >> choice;
+
+        if (std::cin.fail())
+        {
+            ELOG << "Invalid choice, try again";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            continue;
+        }
+
+        switch (choice)
+        {
+        case 1:
+            numberRepOps.binToInt();
+            break;
+        case 2:
+            numberRepOps.intToBin();
+            break;
+        case 3:
+            return;
+        default:
+            ELOG << "Invalid choice, try again";
+            break;
+        }
+    }
 }
 
 void floatingPointOperations()
