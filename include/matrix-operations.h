@@ -56,10 +56,10 @@ class MatrixOperations
     void ShowMatrix();
 
   private:
-    void readIntMatrix(bool manual);
-    void readLongMatrix(bool manual);
-    void readDoubleMatrix(bool manual);
-    void readFloatMatrix(bool manual);
+    void readIntMatrix(bool manual, AccessType accessType);
+    void readLongMatrix(bool manual, AccessType accessType);
+    void readDoubleMatrix(bool manual, AccessType accessType);
+    void readFloatMatrix(bool manual, AccessType accessType);
 
     MatrixType matrixType;
     IntMatrix *intMatrix;

@@ -140,6 +140,18 @@ void MatrixOperations::ReadMatrix()
         return;
     }
 
+    int accessType = ROW_MAJOR;
+    std::cout << "Enter Access type: 1 Row Major\t2 Column Major: ";
+    std::cin >> accessType;
+    if (std::cin.fail() || (accessType != 1 && accessType != 2))
+    {
+        ELOG << "Invalid Access Type specified, assuming ROW_MAJOR";
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        return;
+    }
+    DLOG << "Setting accesstype to " << AccessType(accessType);
+
     std::cout
         << "1 Enter elements manually\t2 Enter random elements" << std::endl;
     int random = -1;
@@ -163,16 +175,16 @@ void MatrixOperations::ReadMatrix()
     switch (matrixType)
     {
     case INT:
-        readIntMatrix(manualInput);
+        readIntMatrix(manualInput, AccessType(accessType));
         break;
     case LONG:
-        readLongMatrix(manualInput);
+        readLongMatrix(manualInput, AccessType(accessType));
         break;
     case FLOAT:
-        readFloatMatrix(manualInput);
+        readFloatMatrix(manualInput, AccessType(accessType));
         break;
     case DOUBLE:
-        readDoubleMatrix(manualInput);
+        readDoubleMatrix(manualInput, AccessType(accessType));
         break;
     case NA:
         ELOG << "Invalid state!";
@@ -198,28 +210,47 @@ bool recheckManual(bool manual, unsigned rows, unsigned cols)
     return manual;
 }
 
-void MatrixOperations::readIntMatrix(bool manual)
+void MatrixOperations::readIntMatrix(bool manual, AccessType accessType)
 {
     unsigned rows = intMatrix->getRows(), cols = intMatrix->getCols();
     manual = recheckManual(manual, rows, cols);
-    Timer timer;
+
     if (manual)
     {
         ILOG << "Reading " << rows * cols << " elements from the user manually";
+    }
+    else
+    {
+        ILOG << "Reading " << rows * cols << " elements randomly";
+    }
+
+    std::random_device rd;
+    std::mt19937 mt(rd());
+    std::uniform_int_distribution<int> dist;
+    Timer timer;
+    if (ROW_MAJOR == accessType)
+    {
         for (unsigned i = 0; i < rows; ++i)
         {
             for (unsigned j = 0; j < cols; ++j)
             {
-                std::cout << "Value [" << i << ", " << j << "]: ";
                 int value = 0;
-                std::cin >> value;
-
-                if (std::cin.fail())
+                if (manual)
                 {
-                    ELOG << "Invalid integer entered, assuming 0";
-                    value = 0;
-                    std::cin.clear();
-                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    std::cout << "Value [" << i << ", " << j << "]: ";
+                    std::cin >> value;
+
+                    if (std::cin.fail())
+                    {
+                        ELOG << "Invalid integer entered, assuming 0";
+                        value = 0;
+                        std::cin.clear();
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    }
+                }
+                else
+                {
+                    value = dist(mt);
                 }
 
                 DLOG << "Read value " << value;
@@ -229,45 +260,78 @@ void MatrixOperations::readIntMatrix(bool manual)
     }
     else
     {
-        std::random_device rd;
-        std::mt19937 mt(rd());
-        std::uniform_int_distribution<int> dist;
-        ILOG << "Reading " << rows * cols << " elements randomly";
-        for (unsigned i = 0; i < rows; ++i)
+        for (unsigned i = 0; i < cols; ++i)
         {
-            for (unsigned j = 0; j < cols; ++j)
+            for (unsigned j = 0; j < rows; ++j)
             {
-                int value = dist(mt);
-                DLOG << "Putting value " << value;
-                intMatrix->set(i, j, value);
+                int value = 0;
+                if (manual)
+                {
+                    std::cout << "Value [" << j << ", " << i << "]: ";
+                    std::cin >> value;
+
+                    if (std::cin.fail())
+                    {
+                        ELOG << "Invalid integer entered, assuming 0";
+                        value = 0;
+                        std::cin.clear();
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    }
+                }
+                else
+                {
+                    value = dist(mt);
+                }
+
+                DLOG << "Read value " << value;
+                intMatrix->set(j, i, value);
             }
         }
     }
     std::cout << "Total time to read the matrix: " << timer.getElapsedMilliseconds() << "ms" << std::endl;
 }
 
-void MatrixOperations::readLongMatrix(bool manual)
+void MatrixOperations::readLongMatrix(bool manual, AccessType accessType)
 {
     unsigned rows = longMatrix->getRows(), cols = longMatrix->getCols();
     manual = recheckManual(manual, rows, cols);
-    Timer timer;
+
     if (manual)
     {
         ILOG << "Reading " << rows * cols << " elements from the user manually";
+    }
+    else
+    {
+        ILOG << "Reading " << rows * cols << " elements randomly";
+    }
+
+    std::random_device rd;
+    std::mt19937_64 mt(rd());
+    std::uniform_int_distribution<long> dist;
+    Timer timer;
+    if (ROW_MAJOR == accessType)
+    {
         for (unsigned i = 0; i < rows; ++i)
         {
             for (unsigned j = 0; j < cols; ++j)
             {
-                std::cout << "Value [" << i << ", " << j << "]: ";
                 long value = 0;
-                std::cin >> value;
-
-                if (std::cin.fail())
+                if (manual)
                 {
-                    ELOG << "Invalid long entered, assuming 0";
-                    value = 0;
-                    std::cin.clear();
-                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    std::cout << "Value [" << i << ", " << j << "]: ";
+                    std::cin >> value;
+
+                    if (std::cin.fail())
+                    {
+                        ELOG << "Invalid integer entered, assuming 0";
+                        value = 0;
+                        std::cin.clear();
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    }
+                }
+                else
+                {
+                    value = dist(mt);
                 }
 
                 DLOG << "Read value " << value;
@@ -277,45 +341,78 @@ void MatrixOperations::readLongMatrix(bool manual)
     }
     else
     {
-        std::random_device rd;
-        std::mt19937_64 mt(rd());
-        std::uniform_int_distribution<long> dist;
-        ILOG << "Reading " << rows * cols << " elements randomly";
-        for (unsigned i = 0; i < rows; ++i)
+        for (unsigned i = 0; i < cols; ++i)
         {
-            for (unsigned j = 0; j < cols; ++j)
+            for (unsigned j = 0; j < rows; ++j)
             {
-                long value = dist(mt);
-                DLOG << "Putting value " << value;
-                longMatrix->set(i, j, value);
+                long value = 0;
+                if (manual)
+                {
+                    std::cout << "Value [" << j << ", " << i << "]: ";
+                    std::cin >> value;
+
+                    if (std::cin.fail())
+                    {
+                        ELOG << "Invalid integer entered, assuming 0";
+                        value = 0;
+                        std::cin.clear();
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    }
+                }
+                else
+                {
+                    value = dist(mt);
+                }
+
+                DLOG << "Read value " << value;
+                longMatrix->set(j, i, value);
             }
         }
     }
     std::cout << "Total time to read the matrix: " << timer.getElapsedMilliseconds() << "ms" << std::endl;
 }
 
-void MatrixOperations::readFloatMatrix(bool manual)
+void MatrixOperations::readFloatMatrix(bool manual, AccessType accessType)
 {
     unsigned rows = floatMatrix->getRows(), cols = floatMatrix->getCols();
     manual = recheckManual(manual, rows, cols);
-    Timer timer;
+
     if (manual)
     {
         ILOG << "Reading " << rows * cols << " elements from the user manually";
+    }
+    else
+    {
+        ILOG << "Reading " << rows * cols << " elements randomly";
+    }
+
+    std::random_device rd;
+    std::mt19937 mt(rd());
+    std::uniform_real_distribution<double> dist(-100.0, 100.0);
+    Timer timer;
+    if (ROW_MAJOR == accessType)
+    {
         for (unsigned i = 0; i < rows; ++i)
         {
             for (unsigned j = 0; j < cols; ++j)
             {
-                std::cout << "Value [" << i << ", " << j << "]: ";
-                float value = 0.0f;
-                std::cin >> value;
-
-                if (std::cin.fail())
+                float value = 0;
+                if (manual)
                 {
-                    ELOG << "Invalid long entered, assuming 0";
-                    value = 0;
-                    std::cin.clear();
-                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    std::cout << "Value [" << i << ", " << j << "]: ";
+                    std::cin >> value;
+
+                    if (std::cin.fail())
+                    {
+                        ELOG << "Invalid integer entered, assuming 0";
+                        value = 0;
+                        std::cin.clear();
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    }
+                }
+                else
+                {
+                    value = dist(mt);
                 }
 
                 DLOG << "Read value " << value;
@@ -325,45 +422,78 @@ void MatrixOperations::readFloatMatrix(bool manual)
     }
     else
     {
-        std::random_device rd;
-        std::mt19937 mt(rd());
-        std::uniform_real_distribution<float> dist;
-        ILOG << "Reading " << rows * cols << " elements randomly";
-        for (unsigned i = 0; i < rows; ++i)
+        for (unsigned i = 0; i < cols; ++i)
         {
-            for (unsigned j = 0; j < cols; ++j)
+            for (unsigned j = 0; j < rows; ++j)
             {
-                float value = dist(mt);
-                DLOG << "Putting value " << value;
-                floatMatrix->set(i, j, value);
+                float value = 0;
+                if (manual)
+                {
+                    std::cout << "Value [" << j << ", " << i << "]: ";
+                    std::cin >> value;
+
+                    if (std::cin.fail())
+                    {
+                        ELOG << "Invalid integer entered, assuming 0";
+                        value = 0;
+                        std::cin.clear();
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    }
+                }
+                else
+                {
+                    value = dist(mt);
+                }
+
+                DLOG << "Read value " << value;
+                floatMatrix->set(j, i, value);
             }
         }
     }
     std::cout << "Total time to read the matrix: " << timer.getElapsedMilliseconds() << "ms" << std::endl;
 }
 
-void MatrixOperations::readDoubleMatrix(bool manual)
+void MatrixOperations::readDoubleMatrix(bool manual, AccessType accessType)
 {
     unsigned rows = doubleMatrix->getRows(), cols = doubleMatrix->getCols();
     manual = recheckManual(manual, rows, cols);
-    Timer timer;
+
     if (manual)
     {
         ILOG << "Reading " << rows * cols << " elements from the user manually";
+    }
+    else
+    {
+        ILOG << "Reading " << rows * cols << " elements randomly";
+    }
+
+    std::random_device rd;
+    std::mt19937_64 mt(rd());
+    std::uniform_real_distribution<double> dist(-100.0, 100.0);
+    Timer timer;
+    if (ROW_MAJOR == accessType)
+    {
         for (unsigned i = 0; i < rows; ++i)
         {
             for (unsigned j = 0; j < cols; ++j)
             {
-                std::cout << "Value [" << i << ", " << j << "]: ";
-                double value = 0.0;
-                std::cin >> value;
-
-                if (std::cin.fail())
+                double value = 0;
+                if (manual)
                 {
-                    ELOG << "Invalid long entered, assuming 0";
-                    value = 0.0;
-                    std::cin.clear();
-                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    std::cout << "Value [" << i << ", " << j << "]: ";
+                    std::cin >> value;
+
+                    if (std::cin.fail())
+                    {
+                        ELOG << "Invalid integer entered, assuming 0";
+                        value = 0;
+                        std::cin.clear();
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    }
+                }
+                else
+                {
+                    value = dist(mt);
                 }
 
                 DLOG << "Read value " << value;
@@ -373,17 +503,31 @@ void MatrixOperations::readDoubleMatrix(bool manual)
     }
     else
     {
-        std::random_device rd;
-        std::mt19937_64 mt(rd());
-        std::uniform_real_distribution<double> dist;
-        ILOG << "Reading " << rows * cols << " elements randomly";
-        for (unsigned i = 0; i < rows; ++i)
+        for (unsigned i = 0; i < cols; ++i)
         {
-            for (unsigned j = 0; j < cols; ++j)
+            for (unsigned j = 0; j < rows; ++j)
             {
-                double value = dist(mt);
-                DLOG << "Putting value " << value;
-                doubleMatrix->set(i, j, value);
+                double value = 0;
+                if (manual)
+                {
+                    std::cout << "Value [" << j << ", " << i << "]: ";
+                    std::cin >> value;
+
+                    if (std::cin.fail())
+                    {
+                        ELOG << "Invalid integer entered, assuming 0";
+                        value = 0;
+                        std::cin.clear();
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    }
+                }
+                else
+                {
+                    value = dist(mt);
+                }
+
+                DLOG << "Read value " << value;
+                doubleMatrix->set(j, i, value);
             }
         }
     }

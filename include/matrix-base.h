@@ -7,7 +7,6 @@
 template <typename T>
 class MatrixBase
 {
-
 public:
   MatrixBase(unsigned int rows, unsigned int cols, AccessType accessType = ROW_MAJOR);
 
@@ -31,8 +30,6 @@ protected:
   AccessType accessType;
 };
 
-#include "row-major-accessor.h"
-#include "col-major-accessor.h"
 #include <iostream>
 
 template <typename T>
@@ -50,6 +47,12 @@ MatrixBase<T>::MatrixBase(unsigned rows, unsigned cols, AccessType accessType)
 template <typename T>
 MatrixBase<T>::~MatrixBase()
 {
+  for (unsigned i = 0; i < rows; ++i)
+  {
+    delete[] data[i];
+  }
+
+  delete[] data;
 }
 
 template <typename T>
@@ -67,6 +70,7 @@ unsigned MatrixBase<T>::getCols() const
 template <typename T>
 T MatrixBase<T>::get(unsigned row, unsigned col) const
 {
+  DLOG << "Getting element at [" << row << ", " << col << "]";
   if (row < rows && col < columns)
   {
     return data[row][col];
@@ -80,6 +84,7 @@ T MatrixBase<T>::get(unsigned row, unsigned col) const
 template <typename T>
 void MatrixBase<T>::set(unsigned row, unsigned col, T val)
 {
+  DLOG << "Setting element at [" << row << ", " << col << "]";
   if (row < rows && col < columns)
   {
     data[row][col] = val;
