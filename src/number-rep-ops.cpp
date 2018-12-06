@@ -36,6 +36,16 @@ void NumberRepOps::binToInt()
         }
     }
 
+    Timer timer;
+    long result = convertToInteger(binaryNumber);
+
+    std::cout << "The decimal representation for the number is [" << result << "]" << std::endl;
+    std::cout << "The time taken to convert from binary to integer is "
+              << timer.getElapsedMicroseconds() << "us" << std::endl;
+}
+
+long NumberRepOps::convertToInteger(std::string binaryNumber)
+{
     DLOG << "The length of the number is " << binaryNumber.length();
     DLOG << "The number read is: " << binaryNumber;
     if (binaryNumber.length() > MAX_LENGTH)
@@ -53,7 +63,6 @@ void NumberRepOps::binToInt()
         }
     }
 
-    Timer timer;
     // Bit 1 is negative
     long negativeValue = ((long)(binaryNumber[0] - '0') << (MAX_LENGTH - 1));
     DLOG << "Initial negative value: " << -negativeValue;
@@ -67,9 +76,7 @@ void NumberRepOps::binToInt()
         DLOG << "At [" << i << "], , adding value [" << tmp << "], result [" << result << "]";
     }
 
-    std::cout << "The decimal representation for the number is [" << result << "]" << std::endl;
-    std::cout << "The time taken to convert from binary to integer is "
-              << timer.getElapsedMicroseconds() << "us" << std::endl;
+    return result;
 }
 
 void NumberRepOps::intToBin()
@@ -90,14 +97,23 @@ void NumberRepOps::intToBin()
     }
 
     Timer timer;
-    long tmp = value;
+    std::string binaryNumber = convertToBinary(value);
+
+    std::cout << "The equivalent two's complement binary number is: " << binaryNumber << std::endl;
+
+    std::cout << "The time taken to convert from integer to binary is "
+              << timer.getElapsedMicroseconds() << "us" << std::endl;
+}
+
+std::string NumberRepOps::convertToBinary(long tmp)
+{
     bool negative = false;
 
     if (tmp < 0)
     {
-        DLOG << "Setting sign bit to true for a negative number";
         negative = true;
         tmp = -tmp;
+        DLOG << "Setting sign bit to true for a negative number, number is now " << tmp;
     }
 
     std::string binaryNumber;
@@ -120,17 +136,11 @@ void NumberRepOps::intToBin()
         std::string tempStr;
         for (auto ch : binaryNumber)
         {
-            if (ch == '0')
-            {
-                tempStr.push_back('1');
-            }
-            else
-            {
-                tempStr.push_back('0');
-            }
+            tempStr.push_back((ch == '0') ? '1' : '0');
         }
 
         binaryNumber = tempStr;
+        DLOG << "1s complement of the number is " << binaryNumber;
         for (unsigned i = binaryNumber.length() - 1; i >= 0; --i)
         {
             DLOG << "Bit " << i << " is " << binaryNumber[i];
@@ -146,10 +156,10 @@ void NumberRepOps::intToBin()
                 binaryNumber[i] = '0';
             }
         }
+
+        // Add sign bit
+        binaryNumber.insert(binaryNumber.begin(), '1');
     }
 
-    std::cout << "The equivalent two's complement binary number is: " << binaryNumber << std::endl;
-
-    std::cout << "The time taken to convert from integer to binary is "
-              << timer.getElapsedMicroseconds() << "us" << std::endl;
+    return binaryNumber;
 }
