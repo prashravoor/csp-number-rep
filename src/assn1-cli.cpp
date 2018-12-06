@@ -4,6 +4,7 @@
 #include "matrix-operations.h"
 #include <limits>
 #include "number-rep-ops.h"
+#include "floating-point-ops.h"
 
 void matrixOperations();
 
@@ -147,4 +148,37 @@ void numRepOperations()
 
 void floatingPointOperations()
 {
+    bannerify("Floating Point Operations");
+    FloatingPointOps floatingPointOps;
+    while (true)
+    {
+        std::cout << "Select the type of operation:" << std::endl;
+        std::cout << "1 IEEE To Fraction\t2 Fraction To IEEE\t3 Previous Menu" << std::endl;
+
+        int choice = -1;
+        std::cin >> choice;
+
+        if (std::cin.fail())
+        {
+            ELOG << "Invalid choice, try again";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            continue;
+        }
+
+        switch (choice)
+        {
+        case 1:
+            floatingPointOps.IeeeToFraction();
+            break;
+        case 2:
+            floatingPointOps.FractionToIeee();
+            break;
+        case 3:
+            return;
+        default:
+            ELOG << "Invalid choice, try again";
+            break;
+        }
+    }
 }
