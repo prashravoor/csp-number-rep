@@ -163,3 +163,29 @@ std::string NumberRepOps::convertToBinary(long tmp)
 
     return binaryNumber;
 }
+
+std::string NumberRepOps::convertToBinaryFraction(std::string n, int maxBits)
+{
+    DLOG << "Converting 0." << n << " to binary fraction with precision = " << maxBits;
+    double fraction = std::stod("0." + n);
+
+    DLOG << "Fraction value is : " << fraction;
+
+    std::string result;
+    while (maxBits-- > 0)
+    {
+        fraction *= 2;
+        if ((int)fraction == 1)
+        {
+            fraction -= 1;
+            result.push_back('1');
+        }
+        else
+        {
+            result.push_back('0');
+        }
+        DLOG << "Fraction = " << fraction;
+    }
+    DLOG << "The result is " << result;
+    return result;
+}

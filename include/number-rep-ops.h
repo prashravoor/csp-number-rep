@@ -5,7 +5,7 @@
 
 class NumberRepOps
 {
-    public:
+  public:
     void intToBin();
 
     void binToInt();
@@ -13,6 +13,8 @@ class NumberRepOps
     std::string convertToBinary(long value);
 
     long convertToInteger(std::string value);
+
+    std::string convertToBinaryFraction(std::string value, int maxBits);
 };
 
 #endif
