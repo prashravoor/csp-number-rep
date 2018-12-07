@@ -20,6 +20,7 @@ class FloatingPointOps
 
   private:
   bool validateFraction(std::string value);
+  void isNanOrInf(std::string value, int expBits, int mantissaBits);
 };
 
 #endif

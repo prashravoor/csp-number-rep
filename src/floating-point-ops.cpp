@@ -43,6 +43,7 @@ void FloatingPointOps::FractionToIeee()
 
         if (!validateFraction(value))
         {
+            isNanOrInf(value, 8, 23);
             return;
         }
 
@@ -69,6 +70,8 @@ void FloatingPointOps::FractionToIeee()
         DLOG << "Value entered is " << value;
         if (!validateFraction(value))
         {
+            // Convert to NaN or INF
+            isNanOrInf(value, 11, 52);
             return;
         }
 
@@ -80,6 +83,48 @@ void FloatingPointOps::FractionToIeee()
         break;
     }
     }
+}
+
+void FloatingPointOps::isNanOrInf(std::string value, int expBits, int mantissaBits)
+{
+    if (value.empty())
+    {
+        return;
+    }
+
+    bool isNegative = false;
+    if (value[0] == '-' || value[0] == '+')
+    {
+        if (value[0] == '-')
+        {
+            isNegative = true;
+        }
+        value = value.substr(1);
+        if (value.empty())
+        {
+            return;
+        }
+    }
+
+    std::stringstream result;
+    result << ((isNegative) ? "1 " : "0 ");
+
+    result << std::setfill('1') << std::setw(expBits) << "1";
+    result << " ";
+
+    std::transform(value.begin(), value.end(), value.begin(),
+                   [](char c) -> char { return std::tolower(c); });
+
+    if (value != "inf")
+    {
+        result << std::setfill('0') << std::setw(mantissaBits) << "1";
+    }
+    else
+    {
+        result << std::setfill('0') << std::setw(mantissaBits) << "0";
+    }
+
+    std::cout << "The provided fraction in floating point notation is: " << result.str() << std::endl;
 }
 
 bool FloatingPointOps::validateFraction(std::string value)
@@ -215,17 +260,20 @@ std::string convertToIeee(std::string value, int exponentBits, int mantissaBits)
 {
     ILOG << "Converting to IEEE [" << value << "] with exponent ["
          << exponentBits << "], Mantissa [" << mantissaBits << "]";
+
+    // Check for NaN, +INF and -INF
+
     int bias = (1 << (exponentBits - 1)) - 1;
     DLOG << "The bias is calculated to be " << bias;
     size_t sizeOfResult = 1 + exponentBits + mantissaBits;
     DLOG << "Converting to binary string of size " << sizeOfResult << " bits";
 
     int maxExponentValue = (1 << (exponentBits)) - bias - 2;
+    int minExponentValue = 1 - bias;
     DLOG << "Max possible exponent value is " << maxExponentValue;
 
     int exp = 0;
     size_t ePos = value.find('e');
-    // Normalize first
     if (std::string::npos != ePos)
     {
         DLOG << "Found exponent at " << ePos;
@@ -236,7 +284,11 @@ std::string convertToIeee(std::string value, int exponentBits, int mantissaBits)
     }
 
     bool negativeValue = false;
-    DLOG << "Exponent value: " << exp;
+    DLOG << "Exponent value in decimal: " << exp;
+    // In binary, exponent would be (exp/3) * 10, assuming 10^3 = 2^10 approx
+    exp = ((exp / 3.0) * 10);
+    DLOG << "Exponent value in binary is: " << exp;
+
     if (value[0] == '+' || value[0] == '-')
     {
         if (value[0] == '-')
@@ -244,6 +296,12 @@ std::string convertToIeee(std::string value, int exponentBits, int mantissaBits)
             negativeValue = true;
         }
         value = value.substr(1);
+    }
+
+    if (value.empty())
+    {
+        ELOG << "Invalid number entered!";
+        return "";
     }
 
     std::string integer(value), fraction("0");
@@ -280,6 +338,16 @@ std::string convertToIeee(std::string value, int exponentBits, int mantissaBits)
         ++exp;
     }
 
+    if (std::string::npos != fractValue.find('1'))
+    {
+        while (intValue[0] != '1')
+        {
+            intValue.replace(0, 1, std::string(1, fractValue.front()));
+            fractValue.erase(fractValue.begin());
+            --exp;
+        }
+    }
+
     ILOG << "The normalized binary string is " << intValue << "." << fractValue << ", exponent: " << exp;
     // Truncate it back to max number of mantissa bits
     if (fractValue.length() > unsigned(mantissaBits))
@@ -296,11 +364,13 @@ std::string convertToIeee(std::string value, int exponentBits, int mantissaBits)
     if (exp > maxExponentValue)
     {
         // Value is infinity, set exp to all ones
-        for (int i = 0; i < exponentBits; ++i)
-        {
-            result << "1";
-        }
+        result << std::setw(exponentBits) << std::setfill('1') << "1";
         DLOG << "Exponent is all 1s!";
+    }
+    else if (exp < minExponentValue)
+    {
+        result << std::setw(exponentBits) << std::setfill('0') << "0";
+        DLOG << "Exponent is all 0s!";
     }
     else
     {
