@@ -191,7 +191,7 @@ bool FloatingPointOps::validateFraction(std::string value)
         // Only valid positions are at the beginning, or immediately after e
         if (value[0] != '-' && value[1] != '+')
         {
-            if (expCount)
+            if (!expCount)
             {
                 ELOG << "The sign can only appear at the beginning of the number";
                 return false;
@@ -256,7 +256,29 @@ bool FloatingPointOps::validateFraction(std::string value)
     return true;
 }
 
-std::string convertToIeee(std::string value, int exponentBits, int mantissaBits)
+std::string FloatingPointOps::toInfinity(bool isNegative, int exponentBits, int mantissaBits)
+{
+    std::stringstream result;
+    result << (isNegative ? "1 " : "0 ");
+
+    result << std::setfill('1') << std::setw(exponentBits) << "1";
+    result << " " << std::setfill('0') << std::setw(mantissaBits) << "0";
+
+    return result.str();
+}
+
+std::string toZero(bool isNegative, int exponentBits, int mantissaBits)
+{
+    std::stringstream result;
+    result << (isNegative ? "1 " : "0 ");
+
+    result << std::setfill('0') << std::setw(exponentBits) << "0";
+    result << " " << std::setfill('0') << std::setw(mantissaBits) << "0";
+
+    return result.str();
+}
+
+std::string FloatingPointOps::convertToIeee(std::string value, int exponentBits, int mantissaBits)
 {
     ILOG << "Converting to IEEE [" << value << "] with exponent ["
          << exponentBits << "], Mantissa [" << mantissaBits << "]";
@@ -319,7 +341,16 @@ std::string convertToIeee(std::string value, int exponentBits, int mantissaBits)
     DLOG << "The integer part is: " << integer << ", fraction is " << fraction;
 
     NumberRepOps numberRepOps;
-    long intVal = std::stol(integer);
+        long intVal = 0;
+    try
+    {
+        intVal = std::stol(integer);
+    }
+    catch (...)
+    {
+        ELOG << "Failed to covnert number " << integer << " to an integer, the number must be infinity";
+        return toInfinity(negativeValue, exponentBits, mantissaBits);
+    }
     // convertToBinary returns a signed representation, omit the sign bit
     std::string intValue = numberRepOps.convertToBinary(intVal);
     if (intValue.length() > 1)
@@ -340,7 +371,7 @@ std::string convertToIeee(std::string value, int exponentBits, int mantissaBits)
 
     if (std::string::npos != fractValue.find('1'))
     {
-        while (intValue[0] != '1')
+        while (intValue[0] != '1' && exp > minExponentValue)
         {
             intValue.replace(0, 1, std::string(1, fractValue.front()));
             fractValue.erase(fractValue.begin());
@@ -366,15 +397,16 @@ std::string convertToIeee(std::string value, int exponentBits, int mantissaBits)
         // Value is infinity, set exp to all ones
         result << std::setw(exponentBits) << std::setfill('1') << "1";
         DLOG << "Exponent is all 1s!";
+        return toInfinity(negativeValue, exponentBits, mantissaBits);
     }
     else if (exp < minExponentValue)
     {
         result << std::setw(exponentBits) << std::setfill('0') << "0";
         DLOG << "Exponent is all 0s!";
+        return toZero(negativeValue, exponentBits, mantissaBits);
     }
-    else
     {
-        exp = exp + bias;
+        exp = (intValue == "0") ? 0 : exp + bias;
         result << std::setfill('0') << std::setw(exponentBits) << numberRepOps.convertToBinary(exp).substr(1);
         DLOG << "The exponent value is " << exp;
     }

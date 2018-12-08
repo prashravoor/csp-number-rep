@@ -5,22 +5,24 @@
 
 class FloatingPointOps
 {
-  public:
-    void IeeeToFraction();
+public:
+  void IeeeToFraction();
 
-    void FractionToIeee();
+  void FractionToIeee();
 
-    float ieeeToSinglePrecision(std::string number);
+  float ieeeToSinglePrecision(std::string number);
 
-    std::string singlePrecisionToIeee(std::string value);
+  std::string singlePrecisionToIeee(std::string value);
 
-    double ieeeToDoublePrecision(std::string number);
+  double ieeeToDoublePrecision(std::string number);
 
-    std::string doublePrecisionToIeee(std::string value);
+  std::string doublePrecisionToIeee(std::string value);
 
-  private:
+private:
   bool validateFraction(std::string value);
   void isNanOrInf(std::string value, int expBits, int mantissaBits);
+  std::string toInfinity(bool isNegative, int exponentBits, int mantissaBits);
+  std::string convertToIeee(std::string value, int exponentBits, int mantissaBits);
 };
 
 #endif
