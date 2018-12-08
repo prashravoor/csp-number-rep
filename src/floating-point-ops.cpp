@@ -6,6 +6,9 @@
 #include "number-rep-ops.h"
 #include <sstream>
 #include <iomanip>
+#include <cmath>
+
+const double FloatingPointOps::log10base2 = log2(10);
 
 void FloatingPointOps::FractionToIeee()
 {
@@ -307,8 +310,7 @@ std::string FloatingPointOps::convertToIeee(std::string value, int exponentBits,
 
     bool negativeValue = false;
     DLOG << "Exponent value in decimal: " << exp;
-    // In binary, exponent would be (exp/3) * 10, assuming 10^3 = 2^10 approx
-    exp = ((exp / 3.0) * 10);
+    exp = (exp * log10base2);
     DLOG << "Exponent value in binary is: " << exp;
 
     if (value[0] == '+' || value[0] == '-')
@@ -341,7 +343,7 @@ std::string FloatingPointOps::convertToIeee(std::string value, int exponentBits,
     DLOG << "The integer part is: " << integer << ", fraction is " << fraction;
 
     NumberRepOps numberRepOps;
-        long intVal = 0;
+    long intVal = 0;
     try
     {
         intVal = std::stol(integer);
@@ -366,6 +368,8 @@ std::string FloatingPointOps::convertToIeee(std::string value, int exponentBits,
     {
         fractValue.insert(fractValue.begin(), intValue.back());
         intValue.pop_back();
+        // Truncate extra bits
+        fractValue.pop_back();
         ++exp;
     }
 
@@ -375,16 +379,12 @@ std::string FloatingPointOps::convertToIeee(std::string value, int exponentBits,
         {
             intValue.replace(0, 1, std::string(1, fractValue.front()));
             fractValue.erase(fractValue.begin());
+            fractValue = fractValue.append("0");
             --exp;
         }
     }
 
     ILOG << "The normalized binary string is " << intValue << "." << fractValue << ", exponent: " << exp;
-    // Truncate it back to max number of mantissa bits
-    if (fractValue.length() > unsigned(mantissaBits))
-    {
-        fractValue = fractValue.substr(0, mantissaBits);
-    }
 
     std::stringstream result;
     // First, the sign bit
@@ -466,7 +466,7 @@ void FloatingPointOps::IeeeToFraction()
         Timer timer;
         float result = ieeeToSinglePrecision(value);
         std::cout << "The single precision value of " << value << " is [" << result << "]" << std::endl;
-        ILOG << "The entire operation took [" << timer.getElapsedMicroseconds() << "us";
+        ILOG << "The entire operation took " << timer.getElapsedMicroseconds() << "us";
     }
     break;
     case 2:
@@ -484,24 +484,135 @@ void FloatingPointOps::IeeeToFraction()
         }
 
         DLOG << "Value entered is " << value;
+
         Timer timer;
         double result = ieeeToDoublePrecision(value);
 
         std::cout << "The double precision value of " << value << " is [" << result << "]" << std::endl;
-        ILOG << "The entire operation took [" << timer.getElapsedMicroseconds() << "us";
+        ILOG << "The entire operation took " << timer.getElapsedMicroseconds() << "us";
         break;
     }
     }
 }
 
+bool FloatingPointOps::validateBinary(std::string value, unsigned len)
+{
+    if (value.length() != len)
+    {
+        ELOG << "Expected the string to be of length: " << len;
+        return false;
+    }
+
+    if (value.find_first_not_of("01") != std::string::npos)
+    {
+        ELOG << "There are invalid characcters in the string";
+        return false;
+    }
+
+    DLOG << "The value " << value << " is valid";
+    return true;
+}
+
+std::string FloatingPointOps::convertIeeeToFraction(std::string value, unsigned exponentBits, unsigned mantissaBits)
+{
+    std::stringstream result;
+    bool isNegative = false;
+    unsigned maxExponentValue = (1 << exponentBits) - 1;
+    DLOG << "The max possible exponent value is " << maxExponentValue;
+
+    if (value[0] == '1')
+    {
+        DLOG << "The provided number is negative";
+        isNegative = true;
+    }
+    value = value.substr(1);
+
+    // Exponent bits
+    std::string exponent = value.substr(0, exponentBits), mantissa = value.substr(exponentBits);
+    DLOG << "The exponent bits are " << exponent << ", the mantissa is " << mantissa;
+
+    // Convert the exponent bits to a number
+    unsigned expValue = std::stoi(exponent, 0, 2);
+    DLOG << "Converted the exponent to base 10: " << expValue;
+
+    // Special values
+    if (maxExponentValue == expValue)
+    {
+        // The number is +- INF, or NAN
+        if (std::string::npos == mantissa.find_first_not_of("0"))
+        {
+            DLOG << "Mantissa contains all 0s, the value is INFINITY";
+            // Value is INF
+            double value = (isNegative ? -INFINITY : INFINITY);
+            result << value;
+        }
+        else
+        {
+            DLOG << "The mantissa contains non-zero, the value is NAN";
+            result << NAN;
+        }
+    }
+    else
+    {
+        int bias = (1 << (exponentBits - 1)) - 1;
+        DLOG << "Calculated the exponent bias as " << bias;
+        int addendum = 1;
+
+        int binaryExp = 0;
+        if (0 != expValue)
+        {
+            DLOG << "The exponent is non-0";
+            binaryExp = expValue - bias;
+        }
+        else
+        {
+            DLOG << "The exponent is 0";
+            binaryExp = 1 - bias;
+            addendum = 0;
+        }
+
+        // Calculate the value of the fraction
+        double fp = 0.0;
+
+        for (unsigned i = 0; i < mantissa.length(); ++i)
+        {
+            double tmp = ((mantissa[i] == '0') ? 0.0 : ((1.0 / ((unsigned long)1 << (i+1)))));
+            DLOG << "Calculated value at i = " << i << " to be " << tmp;
+            fp += tmp;
+            DLOG << "The fp value is now " << fp;
+        }
+
+        DLOG << "The fraction value is " << fp;
+        fp += addendum;
+
+        ILOG << "The value of [" << value << "] is [" << fp << "x 2^" << binaryExp << "]";
+
+        fp = fp * pow(2.0, binaryExp);
+        fp = (isNegative) ? -fp : fp;
+        ILOG << "The final value of the fraction is " << fp;
+        result << fp;
+    }
+    return result.str();
+}
+
 float FloatingPointOps::ieeeToSinglePrecision(std::string value)
 {
-    float result = 0.0f;
-    return result;
+    if (!validateBinary(value, 32))
+    {
+        DLOG << "The value is invalid, returning NaN";
+        return NAN;
+    }
+
+    return std::stof(convertIeeeToFraction(value, 8, 23));
 }
 
 double FloatingPointOps::ieeeToDoublePrecision(std::string value)
 {
-    double result = 0.0;
-    return result;
+    if (!validateBinary(value, 64))
+    {
+        DLOG << "The value is invalid, returning NaN";
+        return NAN;
+    }
+
+    return std::stod(convertIeeeToFraction(value, 11, 52));
 }
