@@ -70,7 +70,7 @@ unsigned MatrixBase<T>::getCols() const
 template <typename T>
 T MatrixBase<T>::get(unsigned row, unsigned col) const
 {
-  DLOG << "Getting element at [" << row << ", " << col << "]";
+  //DLOG << "Getting element at [" << row << ", " << col << "]";
   if (row < rows && col < columns)
   {
     return data[row][col];
@@ -84,7 +84,7 @@ T MatrixBase<T>::get(unsigned row, unsigned col) const
 template <typename T>
 void MatrixBase<T>::set(unsigned row, unsigned col, T val)
 {
-  DLOG << "Setting element at [" << row << ", " << col << "]";
+  //DLOG << "Setting element at [" << row << ", " << col << "]";
   if (row < rows && col < columns)
   {
     data[row][col] = val;

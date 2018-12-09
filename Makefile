@@ -1,5 +1,5 @@
 CC=gcc
-CXXFLAGS=-g --std=c++11 -Wall -I./include
+CXXFLAGS=-O0 -g --std=c++11 -Wall -I./include
 SRC=src
 OBJDIR=obj
 BINDIR=bin

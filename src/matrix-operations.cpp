@@ -125,7 +125,7 @@ void MatrixOperations::CreateMatrix()
         return;
         break;
     }
-    std::cout << "Creating matrix completed in " << timer.getElapsedMilliseconds() << "ms" << std::endl;
+    std::cout << "Creating matrix completed in " << timer.getElapsedMicroseconds() << "us" << std::endl;
 
     ILOG << "Created a matrix of type [" << MatrixType(matrixType) << "], with size ["
          << rows << " x " << columns << "], access type [" << AccessType(accessType) << "]";
@@ -616,5 +616,5 @@ void MatrixOperations::ShowMatrix()
     }
     std::cout << std::endl
               << "Total time to display matrix: "
-              << timer.getElapsedMilliseconds() << "ms" << std::endl;
+              << timer.getElapsedMicroseconds() << "us" << std::endl;
 }
