@@ -283,7 +283,7 @@ std::string toZero(bool isNegative, int exponentBits, int mantissaBits)
 
 std::string FloatingPointOps::convertToIeee(std::string value, int exponentBits, int mantissaBits)
 {
-    ILOG << "Converting to IEEE [" << value << "] with exponent ["
+    DLOG << "Converting to IEEE [" << value << "] with exponent ["
          << exponentBits << "], Mantissa [" << mantissaBits << "]";
 
     // Check for NaN, +INF and -INF
@@ -359,9 +359,9 @@ std::string FloatingPointOps::convertToIeee(std::string value, int exponentBits,
     {
         intValue = intValue.substr(1);
     }
-    ILOG << "The integer value for the number is " << intValue;
+    DLOG << "The integer value for the number is " << intValue;
     std::string fractValue = numberRepOps.convertToBinaryFraction(fraction, mantissaBits);
-    ILOG << "The fractional value for the number, in binary is " << fractValue;
+    DLOG << "The fractional value for the number, in binary is " << fractValue;
 
     DLOG << "The un-normalized number number in binary is " << intValue << "." << fractValue;
     while (intValue.length() > 1)
@@ -384,7 +384,7 @@ std::string FloatingPointOps::convertToIeee(std::string value, int exponentBits,
         }
     }
 
-    ILOG << "The normalized binary string is " << intValue << "." << fractValue << ", exponent: " << exp;
+    DLOG << "The normalized binary string is " << intValue << "." << fractValue << ", exponent: " << exp;
 
     std::stringstream result;
     // First, the sign bit
@@ -585,11 +585,11 @@ std::string FloatingPointOps::convertIeeeToFraction(std::string value, unsigned 
         DLOG << "The fraction value is " << fp;
         fp += addendum;
 
-        ILOG << "The value of [" << value << "] is [" << fp << "x 2^" << binaryExp << "]";
+        DLOG << "The value of [" << value << "] is [" << fp << "x 2^" << binaryExp << "]";
 
         fp = fp * pow(2.0, binaryExp);
         fp = (isNegative) ? -fp : fp;
-        ILOG << "The final value of the fraction is " << fp;
+        DLOG << "The final value of the fraction is " << fp;
         result << fp;
     }
     return result.str();

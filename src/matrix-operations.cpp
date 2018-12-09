@@ -18,7 +18,7 @@ MatrixOperations::~MatrixOperations()
 
 void MatrixOperations::FreeMatrix()
 {
-    DLOG << "Deleting matrix of type " << matrixType;
+    ILOG << "Deleting matrix of type " << matrixType;
     if (intMatrix)
     {
         delete intMatrix;

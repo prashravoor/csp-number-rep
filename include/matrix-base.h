@@ -50,9 +50,11 @@ MatrixBase<T>::~MatrixBase()
   for (unsigned i = 0; i < rows; ++i)
   {
     delete[] data[i];
+    data[i] = NULL;
   }
 
   delete[] data;
+  data = NULL;
 }
 
 template <typename T>
