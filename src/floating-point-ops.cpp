@@ -306,12 +306,15 @@ std::string FloatingPointOps::convertToIeee(std::string value, int exponentBits,
         exp = std::stoi(expValue);
         value = value.substr(0, ePos);
         DLOG << "After removing exponent, value is now " << value;
+
+        DLOG << "Exponent value in decimal: " << exp;
+        double error = ((double)(exp * log10base2) - (int)(exp * log10base2));
+        ILOG << "Error in converting exponent: " << error << ", " << (1 - error) * pow(10, exp);
+        exp = (exp * log10base2);
+        DLOG << "Exponent value in binary is: " << exp;
     }
 
     bool negativeValue = false;
-    DLOG << "Exponent value in decimal: " << exp;
-    exp = (exp * log10base2);
-    DLOG << "Exponent value in binary is: " << exp;
 
     if (value[0] == '+' || value[0] == '-')
     {
@@ -465,6 +468,7 @@ void FloatingPointOps::IeeeToFraction()
 
         Timer timer;
         float result = ieeeToSinglePrecision(value);
+        std::cout.precision(17);
         std::cout << "The single precision value of " << value << " is [" << result << "]" << std::endl;
         ILOG << "The entire operation took " << timer.getElapsedMicroseconds() << "us";
     }
@@ -488,6 +492,7 @@ void FloatingPointOps::IeeeToFraction()
         Timer timer;
         double result = ieeeToDoublePrecision(value);
 
+        std::cout.precision(17);
         std::cout << "The double precision value of " << value << " is [" << result << "]" << std::endl;
         ILOG << "The entire operation took " << timer.getElapsedMicroseconds() << "us";
         break;
@@ -576,7 +581,7 @@ std::string FloatingPointOps::convertIeeeToFraction(std::string value, unsigned 
 
         for (unsigned i = 0; i < mantissa.length(); ++i)
         {
-            double tmp = ((mantissa[i] == '0') ? 0.0 : ((1.0 / ((unsigned long)1 << (i+1)))));
+            double tmp = ((mantissa[i] == '0') ? 0.0 : ((1.0 / ((unsigned long)1 << (i + 1)))));
             DLOG << "Calculated value at i = " << i << " to be " << tmp;
             fp += tmp;
             DLOG << "The fp value is now " << fp;
